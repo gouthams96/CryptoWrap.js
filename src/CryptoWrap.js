@@ -22,4 +22,14 @@ class CryptoWrap {
             ['encrypt', 'decrypt']
         );
     }
+    // Convert PEM to Uint8Array
+    pemToUint8Array(pem) {
+        const base64Data = pem.replace(/-----BEGIN PUBLIC KEY-----|-----END PUBLIC KEY-----/g, '');
+        const binaryString = atob(base64Data);
+        const uint8Array = new Uint8Array(binaryString.length);
+        for (let i = 0; i < binaryString.length; i++) {
+            uint8Array[i] = binaryString.charCodeAt(i);
+        }
+        return uint8Array;
+    }
 }
