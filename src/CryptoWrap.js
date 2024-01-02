@@ -6,6 +6,16 @@ class CryptoWrap {
         const binary = new Uint8Array(buffer);
         return btoa(String.fromCharCode(...binary));
     }
+    _base64ToArrayBuffer(base64) {
+        const binary_string = atob(base64);
+        const len = binary_string.length;
+        const bytes = new Uint8Array(len);
+        for (let i = 0; i < len; i++) {
+            bytes[i] = binary_string.charCodeAt(i);
+        }
+        return bytes.buffer;
+    }
+
     async exportPublicKey() {
         const exportedPublicKey = await window.crypto.subtle.exportKey('spki', this.keyPair.publicKey);
         return this._arrayBufferToBase64(exportedPublicKey);
@@ -22,14 +32,10 @@ class CryptoWrap {
             ['encrypt', 'decrypt']
         );
     }
+
     // Convert PEM to Uint8Array
-    pemToUint8Array(pem) {
+    _pemToUint8Array(pem) {
         const base64Data = pem.replace(/-----BEGIN PUBLIC KEY-----|-----END PUBLIC KEY-----/g, '');
-        const binaryString = atob(base64Data);
-        const uint8Array = new Uint8Array(binaryString.length);
-        for (let i = 0; i < binaryString.length; i++) {
-            uint8Array[i] = binaryString.charCodeAt(i);
-        }
-        return uint8Array;
+        return this._base64ToArrayBuffer(base64Data);
     }
 }
