@@ -58,7 +58,18 @@ class CryptoWrap {
         for (let i = 0; i < byteArray.byteLength; i++) {
             byteString += String.fromCharCode(byteArray[i]);
         }
-        const base64Key = window.btoa(byteString);
+        const base64Key = btoa(byteString);
         return base64Key;
     }
+
+    async base64ToArrayBuffer(base64) {
+        const byteString = atob(base64);
+        const uint8Array = new Uint8Array(byteString.length);
+        for (let i = 0; i < byteString.length; i++) {
+            uint8Array[i] = byteString.charCodeAt(i);
+        }
+        return uint8Array.buffer;
+    }
+
+
 }
