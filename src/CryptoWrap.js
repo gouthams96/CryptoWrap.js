@@ -71,5 +71,21 @@ class CryptoWrap {
         return uint8Array.buffer;
     }
 
+    async encrypt(publicKey, plainText) {
+        const encodedPlaintext = new TextEncoder().encode(plainText).buffer;
+        const format = 'spki';
+        const keyData = await this.base64ToArrayBuffer(await this.pemToBase64(publicKey));
+        const algorithm = this.defaultOptions;
+        const extractable = true;
+        const keyUsages = ['encrypt'];
+        console.log({
+            format, keyData, algorithm, extractable, keyUsages
+        });
+        const secretKey = await crypto.subtle.importKey(format, keyData, algorithm, extractable, keyUsages);
+        const encryptedData = await crypto.subtle.encrypt({
+            name: 'RSA-OAEP',
+        }, secretKey, encodedPlaintext);
+        return await this.arrayBufferToBase64(encryptedData);
+    }
 
 }
