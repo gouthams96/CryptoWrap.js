@@ -47,7 +47,7 @@ class CryptoWrap {
         return pemHeader + base64KeyWithLineBreaks + pemFooter;
     }
 
-    async pemToBase64(pemKey) {
+    pemToBase64(pemKey) {
         const base64Data = pemKey.replace(/-----BEGIN [^-]+-----|-----END [^-]+-----/g, '').replace(/\n/g, '');
         return base64Data;
     }
@@ -62,7 +62,7 @@ class CryptoWrap {
         return base64Key;
     }
 
-    async base64ToArrayBuffer(base64) {
+    base64ToArrayBuffer(base64) {
         const byteString = atob(base64);
         const uint8Array = new Uint8Array(byteString.length);
         for (let i = 0; i < byteString.length; i++) {
@@ -72,16 +72,14 @@ class CryptoWrap {
     }
 
     async encrypt(publicKey, plainText) {
-        const encodedPlaintext = new TextEncoder().encode(plainText).buffer;
+        const encodedPlaintext = new TextEncoder().encode(plainText);
         const format = 'spki';
-        const keyData = await this.base64ToArrayBuffer(await this.pemToBase64(publicKey));
+        const keyData = this.base64ToArrayBuffer(this.pemToBase64(publicKey));
         const algorithm = this.defaultOptions;
         const extractable = true;
         const keyUsages = ['encrypt'];
-        console.log({
-            format, keyData, algorithm, extractable, keyUsages
-        });
         const secretKey = await crypto.subtle.importKey(format, keyData, algorithm, extractable, keyUsages);
+        console.log(secretKey);
         const encryptedData = await crypto.subtle.encrypt({
             name: 'RSA-OAEP',
         }, secretKey, encodedPlaintext);
