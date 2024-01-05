@@ -72,18 +72,38 @@ class CryptoWrap {
     }
 
     async encrypt(publicKey, plainText) {
-        const encodedPlaintext = new TextEncoder().encode(plainText);
+        const encodedPlaintext = new TextEncoder().encode(plainText).buffer;
         const format = 'spki';
         const keyData = this.base64ToArrayBuffer(this.pemToBase64(publicKey));
         const algorithm = this.defaultOptions;
         const extractable = true;
         const keyUsages = ['encrypt'];
         const secretKey = await crypto.subtle.importKey(format, keyData, algorithm, extractable, keyUsages);
-        console.log(secretKey);
         const encryptedData = await crypto.subtle.encrypt({
             name: 'RSA-OAEP',
         }, secretKey, encodedPlaintext);
         return await this.arrayBufferToBase64(encryptedData);
+    }
+
+    async decrypt(privateKey, base64encoded) {
+        const buffer = this.base64ToArrayBuffer(base64encoded);
+        const format = 'pkcs8';
+        const keyData = this.base64ToArrayBuffer(this.pemToBase64(privateKey));
+        const algorithm = {
+            name: "RSA-OAEP",
+            modulusLength: 2048,
+            publicExponent: new Uint8Array([1, 0, 1]),
+            hash: "SHA-256",
+        };
+        const extractable = true;
+        const keyUsages = ['decrypt'];
+        const secretKey = await crypto.subtle.importKey(format, keyData, algorithm, extractable, keyUsages);
+        const decryptedData = await crypto.subtle.decrypt({
+            name: 'RSA-OAEP',
+        }, secretKey, buffer);
+        const uint8Array = new Uint8Array(decryptedData);
+        const decodedString = new TextDecoder().decode(uint8Array);
+        return decodedString;
     }
 
 }
