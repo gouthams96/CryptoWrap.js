@@ -1,18 +1,18 @@
 
 class CryptoWrap {
     constructor() {
+        this.keyPair;
         this.defaultOptions = {
             name: "RSA-OAEP", // Algorithm
             modulusLength: 2048, // The length in bits of the RSA modulus.
             publicExponent: new Uint8Array([0x01, 0x00, 0x01]), // 65537 
             hash: "SHA-256", // Name of the digest function to use.
         };
-        this.keyPair;
     }
     async generateKeyPair() {
         const algorithm = this.defaultOptions;
-        const extractable = true;
-        const keyUsages = ["encrypt", "decrypt"];
+        const extractable = true; // Indicating whether it will be possible to export
+        const keyUsages = ["encrypt", "decrypt"]; // Indicating what can be done with the newly generated key
         this.keyPair = await window.crypto.subtle.generateKey(algorithm, extractable, keyUsages);
     }
     async getPublicKey() {
@@ -39,7 +39,7 @@ class CryptoWrap {
         return this.base64ToPem(base64Key, 'PRIVATE KEY');
     }
 
-    async base64ToPem(base64Key, label) {
+    base64ToPem(base64Key, label) {
         const pemHeader = `-----BEGIN ${label}-----\n`;
         const pemFooter = `\n-----END ${label}-----`;
         const base64KeyWithLineBreaks = base64Key.match(/.{1,64}/g).join('\n');
@@ -77,24 +77,29 @@ class CryptoWrap {
         const algorithm = this.defaultOptions;
         const extractable = true;
         const keyUsages = ['encrypt'];
+
         const secretKey = await crypto.subtle.importKey(format, keyData, algorithm, extractable, keyUsages);
         const encryptedData = await crypto.subtle.encrypt({
             name: 'RSA-OAEP',
         }, secretKey, encodedPlaintext);
+
         return this.arrayBufferToBase64(encryptedData);
     }
 
     async decrypt(privateKey, base64encoded) {
+
         const buffer = this.base64ToArrayBuffer(base64encoded);
         const format = 'pkcs8';
         const keyData = this.base64ToArrayBuffer(this.pemToBase64(privateKey));
         const algorithm = this.defaultOptions;
         const extractable = true;
         const keyUsages = ['decrypt'];
+
         const secretKey = await crypto.subtle.importKey(format, keyData, algorithm, extractable, keyUsages);
         const decryptedData = await crypto.subtle.decrypt({
             name: 'RSA-OAEP',
         }, secretKey, buffer);
+
         const uint8Array = new Uint8Array(decryptedData);
         const decodedString = new TextDecoder().decode(uint8Array);
         return decodedString;
