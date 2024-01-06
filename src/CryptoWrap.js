@@ -5,7 +5,6 @@ class CryptoWrap {
             name: "RSA-OAEP", // Algorithm
             modulusLength: 2048, // The length in bits of the RSA modulus.
             publicExponent: new Uint8Array([0x01, 0x00, 0x01]), // 65537 
-            extractable: true, // Indicating whether it will be possible to export the key using
             hash: "SHA-256", // Name of the digest function to use.
         };
         this.keyPair;
@@ -52,7 +51,7 @@ class CryptoWrap {
         return base64Data;
     }
 
-    async arrayBufferToBase64(buffer) {
+    arrayBufferToBase64(buffer) {
         const byteArray = new Uint8Array(buffer);
         let byteString = '';
         for (let i = 0; i < byteArray.byteLength; i++) {
@@ -82,19 +81,14 @@ class CryptoWrap {
         const encryptedData = await crypto.subtle.encrypt({
             name: 'RSA-OAEP',
         }, secretKey, encodedPlaintext);
-        return await this.arrayBufferToBase64(encryptedData);
+        return this.arrayBufferToBase64(encryptedData);
     }
 
     async decrypt(privateKey, base64encoded) {
         const buffer = this.base64ToArrayBuffer(base64encoded);
         const format = 'pkcs8';
         const keyData = this.base64ToArrayBuffer(this.pemToBase64(privateKey));
-        const algorithm = {
-            name: "RSA-OAEP",
-            modulusLength: 2048,
-            publicExponent: new Uint8Array([1, 0, 1]),
-            hash: "SHA-256",
-        };
+        const algorithm = this.defaultOptions;
         const extractable = true;
         const keyUsages = ['decrypt'];
         const secretKey = await crypto.subtle.importKey(format, keyData, algorithm, extractable, keyUsages);
